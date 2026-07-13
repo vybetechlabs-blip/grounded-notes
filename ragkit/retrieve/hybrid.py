@@ -62,9 +62,7 @@ class HybridRetriever:
 
         ordered = sorted(rrf, key=lambda cid: rrf[cid], reverse=True)
         selected = self._ensure_term_coverage(query, ordered, top_k)
-        return [
-            RetrievedChunk(chunk=chunks[cid], score=cosine.get(cid, 0.0)) for cid in selected
-        ]
+        return [RetrievedChunk(chunk=chunks[cid], score=cosine.get(cid, 0.0)) for cid in selected]
 
     def _ensure_term_coverage(self, query: str, ordered: list[str], top_k: int) -> list[str]:
         """Guarantee the top-k covers the query's most informative term.
