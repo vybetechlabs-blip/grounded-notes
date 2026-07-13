@@ -15,6 +15,16 @@ def test_loader_finds_md_and_txt(fixture_corpus: Path) -> None:
     ]
 
 
+def test_loader_skips_corpus_root_readme(fixture_corpus: Path) -> None:
+    (fixture_corpus / "README.md").write_text("# About this corpus\n\nMeta.", encoding="utf-8")
+    (fixture_corpus / "guides" / "readme.md").write_text(
+        "# Guide Index\n\nNested readmes are real content.", encoding="utf-8"
+    )
+    sources = [d.source for d in load_corpus(fixture_corpus)]
+    assert "README.md" not in sources
+    assert "guides/readme.md" in sources
+
+
 def test_loader_parses_frontmatter_title(fixture_corpus: Path) -> None:
     docs = {d.source: d for d in load_corpus(fixture_corpus)}
     assert docs["guides/espresso.md"].title == "Espresso Guide"

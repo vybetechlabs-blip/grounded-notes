@@ -84,6 +84,20 @@ class ChromaStore:
             retrieved.append(RetrievedChunk(chunk=chunk, score=1.0 - distance))
         return retrieved
 
+    def similarities(self, ids: list[str], embedding: list[float]) -> dict[str, float]:
+        """Cosine similarity between ``embedding`` and each stored chunk id.
+
+        Used by hybrid retrieval so that BM25-only candidates still carry an
+        honest vector-confidence score for the grounding check.
+        """
+        if not ids:
+            return {}
+        result = self._collection.get(ids=ids, include=["embeddings"])
+        return {
+            cid: float(sum(a * b for a, b in zip(vec, embedding, strict=True)))
+            for cid, vec in zip(result["ids"], result["embeddings"], strict=True)
+        }
+
     def all_chunks(self) -> list[Chunk]:
         """Return every indexed chunk (used to build the lexical index)."""
         result = self._collection.get(include=["documents", "metadatas"])

@@ -32,6 +32,10 @@ def load_corpus(corpus_dir: Path) -> list[Document]:
     for path in sorted(corpus_dir.rglob("*")):
         if path.suffix.lower() not in SUPPORTED_SUFFIXES or not path.is_file():
             continue
+        if path.parent == corpus_dir and path.name.lower() == "readme.md":
+            # A corpus-root README documents the corpus; it isn't knowledge,
+            # and indexing it pollutes retrieval with meta-text.
+            continue
         post = frontmatter.load(path)
         text = post.content.strip()
         if not text:

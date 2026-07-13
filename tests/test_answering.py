@@ -32,20 +32,35 @@ def test_citations_number_in_rank_order() -> None:
     assert "a.md" in citations[0].render()
 
 
-def test_grounding_passes_above_threshold() -> None:
-    decision = check_grounding([_result("t", score=0.62)], threshold=0.35)
+def test_grounding_passes_when_both_signals_clear() -> None:
+    decision = check_grounding(
+        [_result("t", score=0.62)], score_threshold=0.35, coverage=0.9, coverage_threshold=0.4
+    )
     assert decision.grounded
     assert decision.best_score == 0.62
 
 
-def test_grounding_hard_fails_below_threshold() -> None:
-    decision = check_grounding([_result("t", score=0.11)], threshold=0.35)
+def test_grounding_hard_fails_below_score_threshold() -> None:
+    decision = check_grounding(
+        [_result("t", score=0.11)], score_threshold=0.35, coverage=0.9, coverage_threshold=0.4
+    )
     assert not decision.grounded
     assert "0.110" in decision.reason
 
 
+def test_grounding_hard_fails_on_low_coverage_despite_high_similarity() -> None:
+    # The hard case: topically-similar chunks, but the question's vocabulary
+    # (e.g. "street address") never occurs in the corpus.
+    decision = check_grounding(
+        [_result("t", score=0.75)], score_threshold=0.35, coverage=0.15, coverage_threshold=0.4
+    )
+    assert not decision.grounded
+    assert "coverage" in decision.reason
+
+
 def test_grounding_hard_fails_on_empty_results() -> None:
-    assert not check_grounding([], threshold=0.35).grounded
+    decision = check_grounding([], score_threshold=0.35, coverage=0.0, coverage_threshold=0.4)
+    assert not decision.grounded
 
 
 def test_context_assembly_labels_sources() -> None:

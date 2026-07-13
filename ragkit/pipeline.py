@@ -13,7 +13,8 @@ from ragkit.grounding.citations import Citation, citations_from_results
 from ragkit.grounding.guard import REFUSAL_TEXT, GroundingDecision, check_grounding
 from ragkit.ingest.chunker import chunk_document
 from ragkit.ingest.loader import load_corpus
-from ragkit.retrieve.vector import VectorRetriever
+from ragkit.retrieve.hybrid import HybridRetriever
+from ragkit.retrieve.rerank import CrossEncoderReranker
 from ragkit.store.chroma import ChromaStore
 
 
@@ -35,7 +36,10 @@ class Pipeline:
         self.settings = settings or get_settings()
         self.embedder = SentenceTransformersEmbedder(self.settings.embedding_model)
         self.store = ChromaStore(self.settings.data_dir, self.settings.collection_name)
-        self.retriever = VectorRetriever(self.store, self.embedder)
+        self.retriever = HybridRetriever(self.store, self.embedder)
+        self.reranker = (
+            CrossEncoderReranker(self.settings.rerank_model) if self.settings.rerank else None
+        )
         self.provider = make_provider(self.settings, self.embedder)
 
     def ingest(self) -> tuple[int, int, int]:
@@ -52,8 +56,18 @@ class Pipeline:
 
     def ask(self, question: str, top_k: int | None = None) -> Answer:
         """Answer a question with citations, or refuse when grounding fails."""
-        results = self.retriever.retrieve(question, top_k or self.settings.top_k)
-        decision = check_grounding(results, self.settings.min_score)
+        k = top_k or self.settings.top_k
+        if self.reranker is not None:
+            candidates = self.retriever.retrieve(question, max(k, self.settings.rerank_candidates))
+            results = self.reranker.rerank(question, candidates)[:k]
+        else:
+            results = self.retriever.retrieve(question, k)
+        decision = check_grounding(
+            results,
+            score_threshold=self.settings.min_score,
+            coverage=self.retriever.coverage(question, results),
+            coverage_threshold=self.settings.min_coverage,
+        )
         text = self.provider.answer(question, results) if decision.grounded else REFUSAL_TEXT
         return Answer(
             question=question,
