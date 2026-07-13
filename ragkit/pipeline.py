@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 from ragkit.config import Settings, get_settings
 from ragkit.embed.local import SentenceTransformersEmbedder
+from ragkit.generate.extractive import ExtractiveAnswerer
 from ragkit.generate.factory import make_provider
 from ragkit.grounding.citations import Citation, citations_from_results
 from ragkit.grounding.guard import REFUSAL_TEXT, GroundingDecision, check_grounding
@@ -68,12 +69,26 @@ class Pipeline:
             coverage=self.retriever.coverage(question, results),
             coverage_threshold=self.settings.min_coverage,
         )
-        text = self.provider.answer(question, results) if decision.grounded else REFUSAL_TEXT
+        provider_name = self.provider.name
+        if decision.grounded:
+            try:
+                text = self.provider.answer(question, results)
+            except Exception:
+                if isinstance(self.provider, ExtractiveAnswerer):
+                    raise
+                # A cloud provider failed (bad key, quota, network) — the demo
+                # degrades to the keyless path instead of crashing.
+                fallback = ExtractiveAnswerer(self.embedder)
+                text = fallback.answer(question, results)
+                provider_name = f"{fallback.name} (fallback: {self.provider.name} failed)"
+        else:
+            text = REFUSAL_TEXT
+            provider_name = "refused"
         return Answer(
             question=question,
             text=text,
             grounded=decision.grounded,
             citations=citations_from_results(results),
             decision=decision,
-            provider=self.provider.name if decision.grounded else "refused",
+            provider=provider_name,
         )
