@@ -1,0 +1,86 @@
+# Eval cases: question -> expected source documents.
+#
+# `expected_sources`: retrieval hits if ANY listed source appears in the
+# top-k citations (some questions are legitimately answered by two docs).
+# `answerable: false` cases MUST be refused by the grounding guard —
+# that metric is expected to stay at 100%.
+
+cases:
+  - question: How much does an Automation Sprint cost?
+    expected_sources:
+      - company/02-engagement-models-and-pricing.md
+      - company/01-service-catalog.md
+
+  - question: Who can declare a major incident?
+    expected_sources:
+      - sops/sop-automation-incident-response.md
+      - faq/internal-faq.md
+
+  - question: What are the four scoring dimensions of the data readiness assessment?
+    expected_sources:
+      - playbooks/playbook-data-readiness-assessment.md
+
+  - question: Why does Lanternfish use hybrid retrieval instead of pure vector search?
+    expected_sources:
+      - playbooks/playbook-rag-implementation.md
+
+  - question: What went wrong on the Granite Peak project?
+    expected_sources:
+      - retros/retro-2025-09-granite-peak.md
+
+  - question: What happens if the kickoff invoice is unpaid?
+    expected_sources:
+      - company/02-engagement-models-and-pricing.md
+      - sops/sop-client-onboarding.md
+
+  - question: What did shadow mode catch before the Petal & Stem chatbot launched?
+    expected_sources:
+      - retros/retro-2026-01-petal-stem.md
+
+  - question: Who owns the code and prompts after an engagement ends?
+    expected_sources:
+      - faq/client-faq.md
+      - sops/sop-project-handoff-and-offboarding.md
+
+  - question: When does a support chatbot escalate to a human?
+    expected_sources:
+      - playbooks/playbook-support-chatbot.md
+
+  - question: What does a YELLOW status mean in the weekly report?
+    expected_sources:
+      - sops/sop-weekly-status-reporting.md
+
+  - question: How long is a discovery call and what should it cover?
+    expected_sources:
+      - sops/sop-discovery-call.md
+
+  - question: What is Lanternfish's default choice for embedding models?
+    expected_sources:
+      - company/04-tooling-stack.md
+      - playbooks/playbook-llm-vendor-selection.md
+
+  - question: Why did retrieval hit-rate jump on the Tidewater catalog assistant?
+    expected_sources:
+      - retros/retro-2025-11-tidewater.md
+
+  - question: What is the empty-chair test?
+    expected_sources:
+      - sops/sop-project-handoff-and-offboarding.md
+
+  - question: Which discounts does Lanternfish offer?
+    expected_sources:
+      - company/02-engagement-models-and-pricing.md
+
+  # ---- Out-of-corpus: the grounding guard must refuse all of these. ----
+
+  - question: What is Lanternfish's street address and phone number?
+    answerable: false
+
+  - question: What was Lanternfish's total revenue in 2024?
+    answerable: false
+
+  - question: How do I configure a Kubernetes ingress controller?
+    answerable: false
+
+  - question: What is the capital of Australia?
+    answerable: false

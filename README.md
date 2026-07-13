@@ -34,7 +34,19 @@ embeddings and an extractive answerer.
 
 ## Eval results
 
-*(filled in during Phase 2)*
+Committed cases in [`evals/cases.yaml`](evals/cases.yaml), run with `uv run ragkit eval`:
+
+| Metric                              | Result | Cases |
+| ----------------------------------- | ------ | ----- |
+| Retrieval hit-rate@5                | 100%   | 15 answerable questions |
+| Refusal accuracy (grounding guard)  | 100%   | 4 out-of-corpus questions |
+| Grounding accuracy overall          | 100%   | 19 |
+
+These numbers weren't free: the first eval run scored 93% / 50%. The two
+failure classes it exposed (same-entity questions with no answer in the
+corpus; rare-term chunks drowned in rank fusion) drove the two-signal
+grounding guard and the term-coverage guarantee in fusion. Details in
+Design decisions.
 
 ## Live demo
 
