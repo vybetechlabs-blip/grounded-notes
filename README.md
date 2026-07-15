@@ -9,8 +9,8 @@ hard-fail, a committed eval suite whose numbers are reproduced below, and a
 clean-room synthetic corpus. Runs from a fresh clone in about two minutes with
 **no API key required**.
 
-> **Live demo:** *(Hugging Face Spaces link goes here after deploy — see
-> [Deploying](#deploying-to-hugging-face-spaces))*
+> **Live demo:** *(link goes here after deploy — see
+> [Deploying](#deploying-streamlit-community-cloud))*
 
 ## Quickstart
 
@@ -169,37 +169,35 @@ uv run ragkit query "..." --show-chunks
 uv run ragkit eval                # run committed cases, non-zero exit below thresholds
 ```
 
-## Deploying to Hugging Face Spaces
+## Deploying (Streamlit Community Cloud)
 
-The Streamlit app is the Spaces entrypoint. Steps:
+The app deploys free, straight from this public repo:
 
-1. Create a new Space: **Streamlit** SDK, CPU basic (free) hardware.
-2. A pip-compatible [`requirements.txt`](requirements.txt) is committed
-   (Spaces installs with pip, not uv). To regenerate after dependency
-   changes: `uv export --no-dev --no-hashes -o requirements.txt`, then
-   re-add the `--extra-index-url https://download.pytorch.org/whl/cpu` line
-   at the top — torch is pinned to CPU wheels, which saves ~3 GB of CUDA
-   downloads on Linux.
-3. Push this repo's contents to the Space (or connect the GitHub repo), and
-   prepend the Space metadata block to the top of `README.md`:
+1. Go to [share.streamlit.io](https://share.streamlit.io) and sign in with
+   the GitHub account that owns the repo.
+2. **New app** → repository `vybetechlabs-blip/grounded-notes`, branch
+   `main`, main file `app.py`.
+3. **Advanced settings** → Python **3.12** (matches `requires-python`).
+4. **Deploy.** Dependencies install from the committed
+   [`requirements.txt`](requirements.txt). First boot takes a couple of
+   minutes: the container downloads the embedding model and builds the index
+   from `corpus/` automatically — the app ingests whenever the index is
+   empty, so a fresh container needs no setup step.
+5. Runs **keyless by default**: public visitors get extractive answers.
+   Adding `ANTHROPIC_API_KEY` in the app's **Secrets** upgrades generation
+   to an LLM for everyone — keyless is the safe default for a public link,
+   since the key owner pays for every visitor's questions.
 
-   ```yaml
-   ---
-   title: grounded-notes
-   emoji: 📚
-   sdk: streamlit
-   python_version: "3.12"
-   app_file: app.py
-   ---
-   ```
+The default footprint fits the free tier: the small MiniLM embedding model,
+CPU-only torch, and no reranker loaded.
 
-4. First boot takes a couple of minutes: the Space downloads the embedding
-   model and ingests the corpus (the app auto-ingests when the index is
-   empty). Subsequent boots reuse nothing — Spaces disks are ephemeral — but
-   the corpus is small, so cold ingest stays under a minute.
-5. Optional: add `ANTHROPIC_API_KEY` as a Space **secret** to upgrade
-   generation quality for all visitors (mind the spend — the keyless mode is
-   the safe default for a public link).
+To regenerate `requirements.txt` after dependency changes:
+`uv export --no-dev --no-hashes -o requirements.txt`, then re-add the
+`--extra-index-url https://download.pytorch.org/whl/cpu` line at the top —
+torch is pinned to CPU wheels, which saves ~3 GB of CUDA downloads on Linux.
+
+*Alternative:* Hugging Face Spaces runs the same `app.py` +
+`requirements.txt` unchanged via its Streamlit/Docker template (PRO-gated).
 
 ## Development
 

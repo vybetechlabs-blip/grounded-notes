@@ -2,7 +2,8 @@
 
 Runs keyless by default (local embeddings + extractive answers). If an
 ANTHROPIC_API_KEY or OPENAI_API_KEY is present, generation upgrades
-automatically. This file is also the Hugging Face Spaces entrypoint.
+automatically. This file is the hosted-deploy entrypoint (Streamlit
+Community Cloud).
 """
 
 import streamlit as st
