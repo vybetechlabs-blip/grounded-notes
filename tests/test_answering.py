@@ -24,6 +24,38 @@ def test_extractive_answer_cites_the_right_chunk(fake_embedder: FakeEmbedder) ->
     assert "nine bars" in answer
 
 
+def test_extractive_renders_table_as_block_not_bullet(fake_embedder: FakeEmbedder) -> None:
+    table = (
+        "| Service | Price (USD) |\n"
+        "| ------- | ----------- |\n"
+        "| Automation Sprint | $9,500 |\n"
+        "| Assistant Build | $18,000 |"
+    )
+    results = [
+        _result(f"Prices are fixed fee.\n\n{table}", "pricing.md"),
+        _result("Kayak paddles need a relaxed grip on open water.", "b.md"),
+    ]
+    answer = ExtractiveAnswerer(fake_embedder).answer(
+        "service price automation sprint fixed fee", results
+    )
+    # The table survives as real markdown: separator row intact, rows at
+    # column zero (not flattened into a "- ..." bullet).
+    assert "| ------- | ----------- |" in answer
+    assert "\n| Automation Sprint | $9,500 |" in answer
+    assert "- | Service" not in answer
+    # Citation marker stays adjacent to the table block.
+    assert "*Table from [1]*" in answer
+
+
+def test_extractive_pipe_lines_without_separator_stay_prose(
+    fake_embedder: FakeEmbedder,
+) -> None:
+    results = [_result("| just one stray pipe line with enough characters here |", "a.md")]
+    answer = ExtractiveAnswerer(fake_embedder).answer("stray pipe line characters", results)
+    assert "*Table from" not in answer
+    assert answer.count("- ") >= 1  # rendered as an ordinary bullet
+
+
 def test_citations_number_in_rank_order() -> None:
     results = [_result("first", "a.md", 0.9), _result("second", "b.md", 0.7)]
     citations = citations_from_results(results)
