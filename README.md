@@ -1,5 +1,7 @@
 # grounded-notes
 
+[![CI](https://github.com/vybetechlabs-blip/grounded-notes/actions/workflows/ci.yml/badge.svg)](https://github.com/vybetechlabs-blip/grounded-notes/actions/workflows/ci.yml)
+
 A grounded RAG knowledge assistant: ask questions over a document corpus and get
 **cited answers** — or an honest *"I don't have that in the knowledge base"*
 when the documents don't contain the answer.
@@ -9,8 +11,10 @@ hard-fail, a committed eval suite whose numbers are reproduced below, and a
 clean-room synthetic corpus. Runs from a fresh clone in about two minutes with
 **no API key required**.
 
-> **Live demo:** *(link goes here after deploy — see
-> [Deploying](#deploying-streamlit-community-cloud))*
+> **Live demo:** [grounded-notes.streamlit.app](https://grounded-notes.streamlit.app)
+> — no setup, no key needed.
+
+![grounded-notes answering a pricing question with a cited table and sources](docs/screenshot.png)
 
 ## Quickstart
 
@@ -203,7 +207,7 @@ torch is pinned to CPU wheels, which saves ~3 GB of CUDA downloads on Linux.
 
 ```
 uv sync                 # includes dev group (ruff, pytest)
-uv run pytest           # 36 tests, hermetic: fake embedder, no downloads
+uv run pytest           # 38 tests, hermetic: fake embedder, no downloads
 uv run ruff check . && uv run ruff format --check .
 ```
 
