@@ -38,11 +38,7 @@ with st.sidebar:
         f"**Retrieval:** hybrid (BM25 + vectors)"
     )
     if pipeline.provider.name == "extractive":
-        st.caption(
-            "Running keyless: answers are extracted quotes. Set "
-            "ANTHROPIC_API_KEY or OPENAI_API_KEY (with `uv sync --extra "
-            "cloud`) for fluent LLM answers."
-        )
+        st.caption("Hosted demo: extractive answers only. Model-backed mode is a local option.")
     st.divider()
     st.markdown(
         "**Try asking:**\n"
